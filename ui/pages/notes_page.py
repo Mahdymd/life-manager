@@ -131,6 +131,9 @@ class NotesPage(BasePage):
             self._title_edit.blockSignals(False)
             self._editor.blockSignals(False)
 
+    def _open_form(self, *args, **kwargs):
+        self._new_note()
+
     def _new_note(self):
         self._vm.create("یادداشت جدید")
 

@@ -48,4 +48,9 @@ class FocusRepository(BaseRepository):
                   THEN actual_min ELSE 0 END) AS today_focus_min,
               COUNT(CASE WHEN type='pomodoro' AND status='completed' THEN 1 END) AS total_pomodoros
             FROM focus_sessions""", (f"{today}%", f"{today}%"))
-        return dict(row) if row else {}
+        d = dict(row) if row else {}
+        return {
+            "today_pomodoros": int(d.get("today_pomodoros") or 0),
+            "today_focus_min": int(d.get("today_focus_min") or 0),
+            "total_pomodoros": int(d.get("total_pomodoros") or 0),
+        }

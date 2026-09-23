@@ -61,7 +61,7 @@ class HabitListViewModel(BaseViewModel):
 
     habits_changed = Signal(list)
     stats_changed = Signal(dict)
-    heatmaps_changed = Signal(dict)
+    heatmaps_changed = Signal(object)  # کلیدها int هستند؛ Signal(dict) در PySide6 آن‌ها را drop می‌کند
     nudge_needed = Signal(object)
     streak_milestone_reached = Signal(object)  # Habit با streak جدید که به یک نقطه‌ی عطف رسیده
 

@@ -8,7 +8,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter, QColor, QPen, QBrush, QFont
 from typing import Optional
 from ui.pages.base_page import BasePage
-from ui.style.theme_manager import colors
+from ui.style.theme_manager import colors, horizon_color
 from ui.viewmodels.analytics_viewmodel import AnalyticsViewModel
 from utils.number_utils import format_currency
 import config
@@ -384,10 +384,10 @@ class AnalyticsPage(BasePage):
 
         for goal in goals:
             row = QHBoxLayout()
-            horizon_color = horizon_color(goal.horizon.value)
+            hc = horizon_color(goal.horizon.value)
             badge = QLabel(config.HORIZON_LABELS.get(goal.horizon.value, ""))
             badge.setStyleSheet(
-                f"background:{horizon_color}22;color:{horizon_color};"
+                f"background:{hc}22;color:{hc};"
                 f"border-radius:6px;padding:1px 6px;font-size:10px;font-weight:600;")
             badge.setFixedWidth(60)
 
@@ -403,11 +403,11 @@ class AnalyticsPage(BasePage):
             pb.setTextVisible(False)
             pb.setStyleSheet(
                 f"QProgressBar{{background:{colors().border};border:none;border-radius:3px;}}"
-                f"QProgressBar::chunk{{background:{horizon_color};border-radius:3px;}}")
+                f"QProgressBar::chunk{{background:{hc};border-radius:3px;}}")
 
             pct_lbl = QLabel(f"{int(goal.computed_progress)}%")
             pct_lbl.setStyleSheet(
-                f"font-size:11px;color:{horizon_color};font-weight:600;background:transparent;")
+                f"font-size:11px;color:{hc};font-weight:600;background:transparent;")
             pct_lbl.setFixedWidth(36)
 
             row.addWidget(badge)

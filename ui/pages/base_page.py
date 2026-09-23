@@ -26,6 +26,7 @@ class BasePage(QWidget):
                               # صدا زده می‌شود.
     """
     request_navigate = Signal(str)   # برای ناوبری از داخل صفحه
+    request_create = Signal(str)     # ناوبری + باز کردن فرم ایجاد
 
     def __init__(self, parent=None):
         super().__init__(parent)

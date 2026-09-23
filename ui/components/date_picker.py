@@ -24,7 +24,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, QPoint
 
 from ui.style.theme_manager import colors, Spacing, Radius, Elevation
-from utils.date_utils import gregorian_to_jalali, jalali_to_gregorian, today_jalali
+from utils.date_utils import (
+    gregorian_to_jalali, jalali_to_gregorian, today_jalali,
+    iran_weekday, days_in_jalali_month,
+)
 import config
 
 
@@ -104,21 +107,6 @@ class JalaliCalendarPopup(QFrame):
         self._render_month()
         self._emit_day(jd)
 
-    def _days_in_jalali_month(self, jy: int, jm: int) -> int:
-        if jm <= 6:
-            return 31
-        if jm <= 11:
-            return 30
-        # اسفند: ۲۹ یا ۳۰ (سال کبیسه) — با تبدیل روز ۳۰ به میلادی و
-        # برگشت، به‌جای فرمول کبیسه‌ی جداگانه (طبق قانون «منطق تبدیل را
-        # تکرار نکن»، همان مسیر jalali_to_gregorian/gregorian_to_jalali
-        # موجود را منبع حقیقت قرار می‌دهیم)
-        try:
-            jalali_to_gregorian(jy, 12, 30)
-            return 30
-        except Exception:
-            return 29
-
     def _render_month(self) -> None:
         c = colors()
         self._month_lbl.setText(f"{config.MONTHS_FA[self._jm-1]} {self._jy}")
@@ -135,9 +123,9 @@ class JalaliCalendarPopup(QFrame):
             self._grid.addWidget(lbl, 0, i)
 
         first_of_month_g = jalali_to_gregorian(self._jy, self._jm, 1)
-        start_weekday = (first_of_month_g.weekday() + 1) % 7  # شنبه=۰
+        start_weekday = iran_weekday(first_of_month_g)
 
-        days = self._days_in_jalali_month(self._jy, self._jm)
+        days = days_in_jalali_month(self._jy, self._jm)
         today_jy, today_jm, today_jd = today_jalali()
 
         row, col = 1, start_weekday

@@ -335,6 +335,9 @@ class LearningPage(BasePage):
             card = CourseCard(course, self._open_course_form, self._delete_course)
             self._courses_grid.addWidget(card, i // 3, i % 3)
 
+    def _open_form(self, *args, **kwargs):
+        self._open_book_form()
+
     def _open_book_form(self, book=None):
         dlg = BookFormDialog(self, book)
         if dlg.exec() == QDialog.DialogCode.Accepted:

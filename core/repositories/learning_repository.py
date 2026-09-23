@@ -90,12 +90,16 @@ class LearningRepository(BaseRepository):
     # ── Skills ──
     def get_skills(self) -> List[Skill]:
         rows = self._fetch_all("SELECT * FROM skills ORDER BY category,name")
-        return [Skill(
-            id=r["id"], name=r["name"], category=r.get("category"),
-            level=r.get("level",1), target_level=r.get("target_level",5),
-            note=r.get("note"), goal_id=r.get("goal_id"),
-            created_at=r["created_at"], updated_at=r["updated_at"],
-        ) for r in rows]
+        result = []
+        for r in rows:
+            d = self._row_to_dict(r)
+            result.append(Skill(
+                id=d["id"], name=d["name"], category=d.get("category"),
+                level=d.get("level", 1), target_level=d.get("target_level", 5),
+                note=d.get("note"), goal_id=d.get("goal_id"),
+                created_at=d["created_at"], updated_at=d["updated_at"],
+            ))
+        return result
 
     def upsert_skill(self, name: str, **kwargs) -> None:
         now = self._now()

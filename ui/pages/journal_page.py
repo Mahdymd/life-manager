@@ -306,6 +306,10 @@ class JournalPage(BasePage):
             wins=wins,
         )
 
+    def _open_form(self, *args, **kwargs):
+        """Ctrl+N روی صفحهٔ روزانه فوکوس را به ویرایشگر می‌برد."""
+        self._content.setFocus()
+
     def _open_history(self):
         self._vm.load_version_history(self._current_date)
 

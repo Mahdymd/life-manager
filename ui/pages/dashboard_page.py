@@ -9,7 +9,7 @@ from ui.pages.base_page import BasePage
 from ui.components.stat_card import StatCard, MiniStatCard
 from ui.style.theme_manager import colors
 from ui.viewmodels.dashboard_viewmodel import DashboardViewModel
-from utils.date_utils import format_jalali, today_jalali, today_iso
+from utils.date_utils import format_jalali, today_jalali, today_iso, weekday_name_fa
 from utils.number_utils import format_currency
 import config
 
@@ -170,9 +170,7 @@ class DashboardPage(BasePage):
     def _build_greeting(self):
         jy, jm, jd = today_jalali()
         date_str = format_jalali(fmt="named")
-        weekdays = ["دوشنبه","سه‌شنبه","چهارشنبه","پنج‌شنبه","جمعه","شنبه","یکشنبه"]
-        from datetime import date
-        wd = weekdays[date.today().weekday()]
+        wd = weekday_name_fa()
 
         frame = QFrame()
         frame.setProperty("class", "card")
@@ -275,15 +273,18 @@ class DashboardPage(BasePage):
         row = QHBoxLayout()
         row.setSpacing(10)
         actions = [
-            ("تسک جدید", "tasks"), ("هدف جدید", "goals"),
-            ("تراکنش", "finance"), ("روزانه", "journal"),
-            ("فوکوس", "focus"),
+            ("تسک جدید", "tasks", True), ("هدف جدید", "goals", True),
+            ("تراکنش", "finance", True), ("روزانه", "journal", False),
+            ("فوکوس", "focus", False),
         ]
-        for label, module in actions:
+        for label, module, create in actions:
             btn = QPushButton(label)
             btn.setProperty("class", "ghost")
             btn.setStyleSheet(btn.styleSheet() + f"border: 1px solid {colors().border}; border-radius: 8px;")
-            btn.clicked.connect(lambda _, m=module: self.request_navigate.emit(m))
+            if create:
+                btn.clicked.connect(lambda _, m=module: self.request_create.emit(m))
+            else:
+                btn.clicked.connect(lambda _, m=module: self.request_navigate.emit(m))
             row.addWidget(btn)
         fl.addLayout(row)
         return wrapper

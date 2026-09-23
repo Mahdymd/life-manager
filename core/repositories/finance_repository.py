@@ -81,12 +81,16 @@ class FinanceRepository(BaseRepository):
         rows = self._fetch_all("""
             SELECT b.*, c.name AS category_name FROM budgets b
             LEFT JOIN categories c ON c.id=b.category_id ORDER BY c.name""")
-        return [Budget(
-            id=r["id"], category_id=r["category_id"],
-            monthly_limit=r["monthly_limit"], alert_at_pct=r["alert_at_pct"],
-            created_at=r["created_at"], updated_at=r["updated_at"],
-            category_name=r.get("category_name"),
-        ) for r in rows]
+        result = []
+        for r in rows:
+            d = self._row_to_dict(r)
+            result.append(Budget(
+                id=d["id"], category_id=d["category_id"],
+                monthly_limit=d["monthly_limit"], alert_at_pct=d["alert_at_pct"],
+                created_at=d["created_at"], updated_at=d["updated_at"],
+                category_name=d.get("category_name"),
+            ))
+        return result
 
     def upsert_budget(self, category_id: int, monthly_limit: float,
                       alert_at_pct: int = 85) -> None:
@@ -105,16 +109,35 @@ class FinanceRepository(BaseRepository):
     def get_saving_goals(self) -> List[SavingGoal]:
         rows = self._fetch_all(
             "SELECT * FROM saving_goals WHERE status='active' ORDER BY created_at")
-        return [SavingGoal(
-            id=r["id"], title=r["title"], target_amount=r["target_amount"],
-            current_amount=r["current_amount"], target_date=r.get("target_date"),
-            goal_id=r.get("goal_id"), status=r["status"],
-            created_at=r["created_at"], updated_at=r["updated_at"],
-        ) for r in rows]
+        result = []
+        for r in rows:
+            d = self._row_to_dict(r)
+            result.append(SavingGoal(
+                id=d["id"], title=d["title"], target_amount=d["target_amount"],
+                current_amount=d["current_amount"], target_date=d.get("target_date"),
+                goal_id=d.get("goal_id"), status=d["status"],
+                created_at=d["created_at"], updated_at=d["updated_at"],
+            ))
+        return result
 
     def add_saving_goal(self, title: str, target_amount: float, **kwargs) -> int:
-        return self._insert({"title": title, "target_amount": target_amount,
-                             "current_amount": 0, **kwargs})
+        # جدول این repository «transactions» است؛ _insert این‌جا اشتباه می‌رود.
+        now = self._now()
+        cur = self._conn().execute(
+            """INSERT INTO saving_goals
+               (title, target_amount, current_amount, target_date, goal_id,
+                status, created_at, updated_at)
+               VALUES (?,?,?,?,?,?,?,?)""",
+            (title, target_amount,
+             kwargs.get("current_amount", 0) or 0,
+             kwargs.get("target_date"),
+             kwargs.get("goal_id"),
+             kwargs.get("status", "active"),
+             now, now),
+        )
+        from core.database.connection import commit
+        commit()
+        return cur.lastrowid
 
     def update_saving_goal(self, id_: int, **kwargs) -> bool:
         cur = self._conn().execute(

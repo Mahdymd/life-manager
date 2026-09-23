@@ -54,7 +54,9 @@ class TaskListViewModel(BaseViewModel):
     tasks_changed = Signal(list)
     stats_changed = Signal(dict)
     categories_changed = Signal(list)
-    subtasks_changed = Signal(dict)
+    # Signal(object) نه Signal(dict): PySide6 دیکشنری با کلید int را
+    # روی Signal(dict) بی‌صدا خالی می‌کند (Cannot copy-convert dict to C++).
+    subtasks_changed = Signal(object)
     history_loaded = Signal(list)
 
     def __init__(self, parent=None) -> None:

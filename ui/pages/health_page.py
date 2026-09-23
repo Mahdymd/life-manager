@@ -144,7 +144,7 @@ class HealthPage(BasePage):
         self._vm.workouts_changed.connect(self._on_workouts_changed)
         self._vm.error_occurred.connect(self._show_error)
 
-        self.set_header(" سلامت", "ردیابی وزن، آب، خواب و تمرینات")
+        self.set_header("سلامت", "ردیابی وزن، آب، خواب و تمرینات")
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -231,6 +231,9 @@ class HealthPage(BasePage):
                 self._vm.log_water(int(value))
             elif metric_type == "sleep":
                 self._vm.log_sleep(value, quality)
+
+    def _open_form(self, *args, **kwargs):
+        self._add_workout()
 
     def _add_workout(self):
         dlg = WorkoutFormDialog(self)

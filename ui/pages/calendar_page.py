@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from utils.date_utils import (
     gregorian_to_jalali, jalali_to_gregorian, today_jalali,
-    format_jalali, parse_jalali_input
+    format_jalali, parse_jalali_input, iran_weekday, days_in_jalali_month,
 )
 from ui.pages.base_page import BasePage
 from ui.style.theme_manager import colors
@@ -178,25 +178,16 @@ class CalendarPage(BasePage):
         for e in events:
             events_by_date.setdefault(e.date, []).append(e)
 
-        # Determine days in jalali month
-        days_in_month = 31 if self._cur_month <= 6 else (30 if self._cur_month <= 11 else 29)
-        try:
-            jalali_to_gregorian(self._cur_year, self._cur_month, 30)
-        except Exception:
-            pass
-
-        # First weekday of month
+        days_in_month = days_in_jalali_month(self._cur_year, self._cur_month)
         try:
             first_g = jalali_to_gregorian(self._cur_year, self._cur_month, 1)
-            first_weekday = first_g.weekday()  # Monday=0
-            # Convert to Saturday-start week (Iranian week: Sat=0...Fri=6)
-            iran_weekday = (first_weekday + 2) % 7
+            start_col = iran_weekday(first_g)
         except Exception:
-            iran_weekday = 0
+            start_col = 0
 
         today_iso_str = date.today().isoformat()
         row = 1
-        col = iran_weekday
+        col = start_col
         for day in range(1, days_in_month + 1):
             try:
                 g_date = jalali_to_gregorian(self._cur_year, self._cur_month, day)

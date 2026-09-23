@@ -115,10 +115,13 @@ class TaskRepository(BaseRepository):
         row = self._fetch_one("""
             SELECT
               COUNT(*) AS total,
-              SUM(status='done') AS done,
-              SUM(status='todo') AS todo,
-              SUM(status='in_progress') AS in_progress,
-              SUM(due_date = date('now') AND status NOT IN ('done','cancelled')) AS due_today,
-              SUM(due_date < date('now') AND status NOT IN ('done','cancelled')) AS overdue
+              COALESCE(SUM(status='done'), 0) AS done,
+              COALESCE(SUM(status='todo'), 0) AS todo,
+              COALESCE(SUM(status='in_progress'), 0) AS in_progress,
+              COALESCE(SUM(due_date = date('now','localtime')
+                           AND status NOT IN ('done','cancelled')), 0) AS due_today,
+              COALESCE(SUM(due_date < date('now','localtime')
+                           AND status NOT IN ('done','cancelled')), 0) AS overdue
             FROM tasks""")
-        return dict(row) if row else {}
+        d = dict(row) if row else {}
+        return {k: int(v or 0) for k, v in d.items()}

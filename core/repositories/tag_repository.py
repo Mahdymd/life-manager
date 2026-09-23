@@ -10,16 +10,19 @@ class TagRepository(BaseRepository):
     def __init__(self) -> None:
         super().__init__("tags")
 
+    def _to_tag(self, row) -> Tag:
+        d = self._row_to_dict(row)
+        return Tag(id=d["id"], name=d["name"], color=d.get("color", "#6366f1"),
+                   created_at=d["created_at"], updated_at=d["updated_at"])
+
     def get_all(self) -> List[Tag]:
         rows = self._fetch_all("SELECT * FROM tags ORDER BY name")
-        return [Tag(id=r["id"], name=r["name"], color=r.get("color","#6366f1"),
-                    created_at=r["created_at"], updated_at=r["updated_at"]) for r in rows]
+        return [self._to_tag(r) for r in rows]
 
     def create(self, name: str, color: str = "#6366f1") -> Tag:
         id_ = self._insert({"name": name, "color": color})
         row = self._fetch_one("SELECT * FROM tags WHERE id=?", (id_,))
-        return Tag(id=row["id"], name=row["name"], color=row.get("color","#6366f1"),
-                   created_at=row["created_at"], updated_at=row["updated_at"])
+        return self._to_tag(row)
 
     def tag_entity(self, tag_id: int, entity_type: str, entity_id: int) -> None:
         try:
@@ -35,8 +38,7 @@ class TagRepository(BaseRepository):
             SELECT t.* FROM tags t
             JOIN taggables tb ON tb.tag_id=t.id
             WHERE tb.entity_type=? AND tb.entity_id=?""", (entity_type, entity_id))
-        return [Tag(id=r["id"], name=r["name"], color=r.get("color","#6366f1"),
-                    created_at=r["created_at"], updated_at=r["updated_at"]) for r in rows]
+        return [self._to_tag(r) for r in rows]
 
     def get_category_all(self, module: str) -> List:
         rows = self._fetch_all("""

@@ -18,7 +18,10 @@ from ui.components.toast import show_toast
 from ui.components.breadcrumb import SegmentedControl
 from ui.components.history_dialog import HistoryDialog
 from ui.style.theme_manager import colors, Motion
-from utils.date_utils import format_jalali, parse_jalali_input, today_iso, today_jalali, jalali_to_gregorian
+from utils.date_utils import (
+    format_jalali, parse_jalali_input, today_iso, today_jalali,
+    jalali_to_gregorian, iran_weekday, days_in_jalali_month,
+)
 import config
 
 
@@ -604,9 +607,9 @@ class TasksPage(BasePage):
             first_of_month_g = jalali_to_gregorian(self._cal_year, self._cal_month, 1)
         except Exception:
             return
-        start_weekday = (first_of_month_g.weekday() + 2) % 7  # شنبه=۰
+        start_weekday = iran_weekday(first_of_month_g)
 
-        days = 31 if self._cal_month <= 6 else (30 if self._cal_month <= 11 else 29)
+        days = days_in_jalali_month(self._cal_year, self._cal_month)
         today_jy, today_jm, today_jd = today_jalali()
 
         row, col = 1, start_weekday
@@ -663,6 +666,10 @@ class TasksPage(BasePage):
     # ------------------------------------------------------------------ #
     def _on_categories_changed(self, categories: list):
         self._categories_cache = categories
+
+    def _open_form(self, task=None):
+        """Ctrl+N / command palette — همان دیالوگ تسک جدید."""
+        self._open_new_dialog()
 
     def _open_new_dialog(self):
         dlg = TaskFormDialog(self, categories=self._categories_cache)

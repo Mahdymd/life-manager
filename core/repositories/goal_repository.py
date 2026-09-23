@@ -61,11 +61,15 @@ class GoalRepository(BaseRepository):
     def get_key_results(self, goal_id: int) -> List[GoalKeyResult]:
         rows = self._fetch_all(
             "SELECT * FROM goal_key_results WHERE goal_id=? ORDER BY id", (goal_id,))
-        return [GoalKeyResult(
-            id=r["id"], goal_id=r["goal_id"], title=r["title"],
-            target=r["target"], current=r["current"], unit=r.get("unit"),
-            created_at=r["created_at"], updated_at=r["updated_at"]
-        ) for r in rows]
+        result = []
+        for r in rows:
+            d = self._row_to_dict(r)
+            result.append(GoalKeyResult(
+                id=d["id"], goal_id=d["goal_id"], title=d["title"],
+                target=d["target"], current=d["current"], unit=d.get("unit"),
+                created_at=d["created_at"], updated_at=d["updated_at"],
+            ))
+        return result
 
     def upsert_key_result(self, goal_id: int, title: str,
                           target: float, current: float = 0,
@@ -94,8 +98,9 @@ class GoalRepository(BaseRepository):
     def get_stats(self) -> Dict:
         row = self._fetch_one("""
             SELECT COUNT(*) AS total,
-              SUM(status='active') AS active,
-              SUM(status='done') AS done,
-              SUM(status='paused') AS paused
+              COALESCE(SUM(status='active'), 0) AS active,
+              COALESCE(SUM(status='done'), 0) AS done,
+              COALESCE(SUM(status='paused'), 0) AS paused
             FROM goals""")
-        return dict(row) if row else {}
+        d = dict(row) if row else {}
+        return {k: (v or 0) for k, v in d.items()}
