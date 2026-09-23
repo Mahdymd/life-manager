@@ -208,3 +208,32 @@ def is_today(iso_date: Optional[str]) -> bool:
     if not iso_date:
         return False
     return iso_date[:10] == today_iso()
+
+
+def iran_weekday(g_date: date) -> int:
+    """ستون هفته‌ی ایرانی: شنبه=۰ … جمعه=۶.
+
+    date.weekday() در پایتون دوشنبه=۰ است؛ دو روز شیفت می‌دهیم تا با
+    تقویم فارسی (و هدر config.WEEKDAY_FA) هم‌خوان شود.
+    """
+    return (g_date.weekday() + 2) % 7
+
+
+def weekday_name_fa(g_date: Optional[date] = None) -> str:
+    """نام فارسی روز هفته برای تاریخ میلادی (پیش‌فرض: امروز)."""
+    if g_date is None:
+        g_date = date.today()
+    return config.WEEKDAY_FA[iran_weekday(g_date)]
+
+
+def days_in_jalali_month(jy: int, jm: int) -> int:
+    """تعداد روزهای ماه شمسی؛ اسفند در سال کبیسه ۳۰ روز است."""
+    if jm <= 6:
+        return 31
+    if jm <= 11:
+        return 30
+    try:
+        jalali_to_gregorian(jy, 12, 30)
+        return 30
+    except (ValueError, OverflowError):
+        return 29

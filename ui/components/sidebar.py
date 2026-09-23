@@ -45,7 +45,9 @@ class NavButton(QPushButton):
 
     def _icon_for(self, size: int = 20):
         c = colors()
-        col = c.primary if self.isChecked() else c.text_secondary
+        # دکمه‌ی فعال پس‌زمینه‌ی primary دارد؛ آیکون باید primary_text باشد
+        # وگرنه بنفش روی بنفش دیده نمی‌شود.
+        col = c.primary_text if self.isChecked() else c.text_secondary
         return module_icon(self.module, size, col)
 
     def _apply_collapsed(self):

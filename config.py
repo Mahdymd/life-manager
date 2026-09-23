@@ -24,7 +24,7 @@ APP_NAME        = "Life Manager"
 APP_NAME_FA     = "مدیریت زندگی"
 APP_VERSION     = "1.0.0"
 APP_DESCRIPTION = "سیستم جامع مدیریت زندگی"
-SCHEMA_VERSION  = 2  # aligned with highest migration (v002)
+SCHEMA_VERSION  = 3  # aligned with highest migration (v003)
 
 # ── دیتابیس ─────────────────────────────────────────────
 DB_TIMEOUT       = 30
@@ -67,7 +67,9 @@ STATUS_LABELS_GOAL = {
     "paused": "متوقف", "cancelled": "لغوشده",
 }
 
-WEEKDAY_FA = ["دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه", "یکشنبه"]
+# هفته‌ی ایرانی از شنبه شروع می‌شود (نه دوشنبه). این لیست هدر تقویم است؛
+# برای نگاشت date.weekday() از utils.date_utils.iran_weekday / weekday_name_fa استفاده کنید.
+WEEKDAY_FA = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه"]
 MONTHS_FA  = [
     "فروردین", "اردیبهشت", "خرداد",
     "تیر",     "مرداد",    "شهریور",

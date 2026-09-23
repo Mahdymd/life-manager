@@ -44,7 +44,7 @@ class GoalListViewModel(BaseViewModel):
     """
 
     goals_changed = Signal(list)
-    catchup_plans_changed = Signal(dict)
+    catchup_plans_changed = Signal(object)  # کلیدها int هستند؛ Signal(dict) در PySide6 آن‌ها را drop می‌کند
     milestones_loaded = Signal(int, list)
 
     def __init__(self, parent=None) -> None:

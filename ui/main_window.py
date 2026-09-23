@@ -3,6 +3,7 @@
 import sys
 import traceback
 import logging
+from pathlib import Path
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QStackedWidget, QLabel, QFrame, QSizePolicy,
@@ -47,11 +48,10 @@ class StatusBar(QFrame):
     def _update_date(self):
         try:
             from utils.date_utils import today_jalali
-            from config import MONTHS_FA, WEEKDAY_FA
-            from datetime import date
+            from config import MONTHS_FA
+            from utils.date_utils import weekday_name_fa
             jy, jm, jd = today_jalali()
-            wd = WEEKDAY_FA[date.today().weekday()]
-            self._date_lbl.setText(f"{wd}  {jd} {MONTHS_FA[jm-1]} {jy}")
+            self._date_lbl.setText(f"{weekday_name_fa()}  {jd} {MONTHS_FA[jm-1]} {jy}")
         except Exception:
             pass
 
@@ -145,6 +145,7 @@ class MainWindow(QMainWindow):
                 from ui.pages.dashboard_page import DashboardPage
                 p = DashboardPage()
                 p.request_navigate.connect(self._navigate_to)
+                p.request_create.connect(self._navigate_and_create)
                 return p
             elif module == "tasks":
                 from ui.pages.tasks_page import TasksPage
@@ -240,7 +241,10 @@ class MainWindow(QMainWindow):
             self._stack.setCurrentWidget(page)
             self._sidebar.set_active(module)
             self._current_module = module
-            self._status_bar.set_status(module)
+            from ui.components.sidebar import NAV_ITEMS
+            labels = dict(NAV_ITEMS)
+            labels["settings"] = "تنظیمات"
+            self._status_bar.set_status(labels.get(module, module))
 
             # Refresh with error protection
             if hasattr(page, "refresh"):
@@ -385,13 +389,24 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 logger.error("refresh error: %s", e)
 
+    def _navigate_and_create(self, module: str):
+        self._navigate_to(module)
+        QTimer.singleShot(120, self._quick_new)
+
     def _quick_new(self):
         page = self._pages.get(self._current_module)
-        if page and hasattr(page, "_open_form"):
-            try:
-                page._open_form()
-            except Exception:
-                pass
+        if not page:
+            return
+        for name in ("_open_form", "_open_new_dialog", "_new_note",
+                     "_open_book_form", "_add_workout"):
+            fn = getattr(page, name, None)
+            if callable(fn):
+                try:
+                    fn()
+                except Exception as e:
+                    logger.error("quick-new %s on %s failed: %s",
+                                 name, self._current_module, e)
+                return
 
     def _manual_backup(self):
         self._status_bar.set_status("در حال بکاپ‌گیری...")
@@ -401,7 +416,7 @@ class MainWindow(QMainWindow):
             w = Worker(manual_backup)
             w.signals.finished.connect(
                 lambda p: (self._status_bar.set_status("بکاپ انجام شد"),
-                           self._status_bar.set_backup_info(str(p).split('/')[-1])))
+                           self._status_bar.set_backup_info(Path(str(p)).name)))
             w.signals.error.connect(
                 lambda e: self._status_bar.set_status(f"خطا: {e}"))
             w.start()
